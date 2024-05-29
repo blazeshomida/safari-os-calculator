@@ -1,5 +1,21 @@
 "use client";
 
+import {
+  type Float,
+  type Integer,
+  OPERATORS,
+  type Operator,
+  evaluate,
+  infixToPostfix,
+  useAddInput,
+  useAddOperator,
+  useClear,
+  useInputs,
+  useInvert,
+  usePercent,
+  useReset,
+} from "@/lib/calculatorStore";
+import { cn } from "@/lib/utils/cn";
 import type React from "react";
 import Button from "./Button";
 
@@ -35,85 +51,47 @@ function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
 }
 
 const FUNCTIONS = ["AC", "+/-", "%"] as const;
-const OPERATORS = ["÷", "x", "-", "+", "="] as const;
-const DIGITS = [
-  "zero",
-  "one",
-  "two",
-  "three",
-  "four",
-  "five",
-  "six",
-  "seven",
-  "eight",
-  "nine",
-] as const;
 
-const inputPatterns = {
+const DIGITS = {
+  zero: "0",
+  one: "1",
+  two: "2",
+  three: "3",
+  four: "4",
+  five: "5",
+  six: "6",
+  seven: "7",
+  eight: "8",
+  nine: "9",
+  decimal: ".",
+};
+
+export const inputPatterns = {
   sign: /[-+]/,
   integer: /^[-+]?\d+$/,
+  number: /^[-+]?\d+\.?\d*$/,
   float: /^[-+]?\d+\.\d+$/,
   hasDecimal: /^[-+]?\d*\.\d*$/,
   decimal: /^\.$/,
-  operator: /^[+\-*/]$/,
+  operator: /^[+\-x÷]$/,
 };
 
 function Calculator() {
   return (
     <div>
-      <div className="ml-auto text-right text-7xl">
-        <output className="col-span-full ml-auto pr-8 md:pr-10">0</output>
-      </div>
+      <Display />
       <div
         onPointerDown={handlePointerDown}
-        className="grid w-full max-w-md touch-none select-none grid-cols-4 gap-2 p-4 *:grid *:grid-cols-subgrid *:grid-rows-subgrid lg:max-w-xl"
+        className="grid w-full max-w-md touch-none select-none grid-cols-4 gap-3 p-4 *:grid *:grid-cols-subgrid *:grid-rows-subgrid lg:max-w-xl"
       >
         <div className="col-span-3 row-span-5">
-          {FUNCTIONS.map((value) => (
-            <Button variant="function" key={value} value={value}>
-              {value}
-            </Button>
-          ))}
-          <div
-            style={{
-              gridTemplateAreas: `
-            "seven eight nine"\n
-            "four five six"\n
-            "one two three"\n
-            "zero zero decimal"`,
-            }}
-            className="col-span-full row-span-5 grid grid-cols-subgrid gap-2"
-          >
-            {DIGITS.map((value, idx) => (
-              <Button
-                variant="default"
-                size={idx === 0 ? "large" : "default"}
-                style={{
-                  gridArea: value,
-                }}
-                key={value}
-                value={idx}
-              >
-                {idx}
-              </Button>
-            ))}
-            <Button
-              variant="default"
-              style={{
-                gridArea: "decimal",
-              }}
-              value="."
-            >
-              .
-            </Button>
-          </div>
+          <ClearButton />
+          <InvertButton />
+          <PercentButton />
+          <Digits />
         </div>
         <div className="row-span-5">
-          {OPERATORS.map((value) => (
-            <Button variant="operator" key={value} value={value}>
-              {value}
-            </Button>
-          ))}
+          <Operators />
         </div>
       </div>
     </div>
@@ -121,3 +99,124 @@ function Calculator() {
 }
 
 export default Calculator;
+
+const formatter = new Intl.NumberFormat("en-US");
+function formatOutput(output: string) {
+  const [integer, decimals = ""] = output.split(".");
+  const formattedInteger = formatter.format(Number.parseInt(integer));
+  if (!output.includes(".")) return formattedInteger;
+  return integer.concat(".", decimals);
+}
+
+function Display() {
+  const inputs = useInputs();
+  const output = inputs.findLast((input) => inputPatterns.number.test(input));
+  if (!output) return null;
+  return (
+    <div
+      className={cn("pr-8 text-right text-7xl", {
+        "py-1.5 text-6xl": output.length > 6,
+      })}
+    >
+      <div className="text-xs">
+        <pre>
+          <code>{JSON.stringify(inputs)}: </code>
+          <label htmlFor="">Inputs</label>
+        </pre>
+        <pre>
+          <code>{JSON.stringify(infixToPostfix(inputs))}: </code>
+          <label htmlFor="">Conversion</label>
+        </pre>
+        <pre>
+          {/* biome-ignore lint/style/noNonNullAssertion: <explanation> */}
+          <code>{JSON.stringify(evaluate(infixToPostfix(inputs)!))}: </code>
+          <label htmlFor="">Total</label>
+        </pre>
+      </div>
+      <output>{formatOutput(output)}</output>
+    </div>
+  );
+}
+
+function Digits() {
+  const addInput = useAddInput();
+
+  return (
+    <div
+      style={{
+        gridTemplateAreas: `
+            "seven eight nine"\n
+            "four five six"\n
+            "one two three"\n
+            "zero zero decimal"`,
+      }}
+      className="col-span-full row-span-5 grid grid-cols-subgrid gap-2"
+    >
+      {Object.entries(DIGITS).map(([named, value]) => (
+        <Button
+          variant="default"
+          size={value === "0" ? "large" : "default"}
+          style={{
+            gridArea: named,
+          }}
+          key={value}
+          value={value}
+          onPointerUp={(e) =>
+            addInput(e.currentTarget.value as Float | Integer | Operator)
+          }
+        >
+          {value}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+function Operators() {
+  const addOperator = useAddOperator();
+  const inputs = useInputs();
+  const lastOperator = inputs.findLast((input) =>
+    inputPatterns.operator.test(input),
+  );
+  return OPERATORS.map((value) => (
+    <Button
+      onPointerUp={() => addOperator(value)}
+      variant="operator"
+      key={value}
+      active={lastOperator === value}
+      value={value}
+    >
+      {value}
+    </Button>
+  ));
+}
+
+function ClearButton() {
+  const clear = useClear();
+  const reset = useReset();
+  const inputs = useInputs();
+  const isZero = inputs.at(-1) === "0";
+  const handler = isZero ? reset : clear;
+  return (
+    <Button onPointerUp={handler} variant="function" value="AC">
+      {isZero ? "AC" : "C"}
+    </Button>
+  );
+}
+
+function PercentButton() {
+  const percent = usePercent();
+  return (
+    <Button variant="function" onPointerUp={percent} value="%">
+      %
+    </Button>
+  );
+}
+function InvertButton() {
+  const invert = useInvert();
+  return (
+    <Button variant="function" onPointerUp={invert} value="+/-">
+      +/-
+    </Button>
+  );
+}
