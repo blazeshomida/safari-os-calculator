@@ -15,11 +15,11 @@ const buttonVariants = cva(
         function:
           "text-neutral-900 bg-neutral-300 data-[state=pressed]:bg-neutral-50",
         operator:
-          "data-[active=false]:bg-amber-500 data-[active=true]:bg-white data-[state=pressed]:bg-[rgb(255,193,93)] data-[active=true]:text-amber-500",
+          "data-[active=false]:bg-amber-500 data-[active=true]:bg-white data-[state=pressed]:bg-[rgb(255,193,93)] duration-100 data-[active=true]duration-0 data-[active=true]:text-amber-500",
       },
       size: {
-        small: "p-4 font-medium text-sm md:text-lg aspect-square",
-        default: "p-4 text-4xl  aspect-square",
+        small: "p-3 font-medium text-sm md:text-lg aspect-square",
+        default: "p-3 text-4xl  aspect-square",
         large: "col-span-2 justify-start text-4xl aspect-auto pl-8",
       },
     },
