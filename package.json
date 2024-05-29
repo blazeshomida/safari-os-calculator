@@ -8,13 +8,7 @@
     "start": "next start",
     "format": "biome format --write .",
     "lint": "biome lint --apply .",
-    "check": "biome check --apply .",
-    "prepare": "husky"
-  },
-  "lint-staged": {
-    "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
-      "biome format --write --no-errors-on-unmatched"
-    ]
+    "check": "biome check --apply ."
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -29,8 +23,6 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "class-variance-authority": "^0.7.0",
-    "husky": "^9.0.11",
-    "lint-staged": "^15.2.2",
     "postcss": "^8",
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.14",
