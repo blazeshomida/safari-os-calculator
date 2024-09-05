@@ -22,7 +22,7 @@ type CalculatorState = {
 
 // Create the zustand store for the calculator state
 const useCalculatorStore = create<CalculatorState>()((set, get) => ({
-  inputs: ["0"] as const,
+  inputs: ["0" as Input],
   addInput(value) {
     set((state) => {
       const inputs = [...state.inputs];
@@ -90,9 +90,17 @@ const useCalculatorStore = create<CalculatorState>()((set, get) => ({
     set((state) => {
       const lastInput = state.inputs.at(-1);
       const secondLast = state.inputs.at(-2);
-      if (!lastInput || !secondLast) return state;
+      if (!lastInput) return state;
       const value = Number.parseFloat(lastInput) / 100;
       let percent = value;
+      const getInputs = () =>
+        state.inputs
+          .slice(0, -1)
+          .concat(percent.toPrecision(9).replace(/\.?0+$/, "") as Input);
+      if (!secondLast)
+        return {
+          inputs: getInputs(),
+        };
       if (["+", "-"].includes(secondLast)) {
         const thirdLast = state.inputs.at(-3);
         if (!thirdLast) return state;
@@ -100,9 +108,7 @@ const useCalculatorStore = create<CalculatorState>()((set, get) => ({
         percent = base * value;
       }
       return {
-        inputs: state.inputs
-          .slice(0, -1)
-          .concat(percent.toPrecision(9).replace(/\.?0+$/, "") as Input),
+        inputs: getInputs(),
       };
     });
   },
