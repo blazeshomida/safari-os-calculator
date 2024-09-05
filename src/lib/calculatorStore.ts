@@ -191,7 +191,6 @@ export function evaluate(conversion: Input[]) {
   if (conversion.length === 0) return;
   const results: Input[] = [];
   for (const token of conversion) {
-    if (!token) continue;
     if (!operatorMap.has(token)) {
       results.push(token);
       continue;

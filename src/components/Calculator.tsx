@@ -50,8 +50,6 @@ function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
   }
 }
 
-const FUNCTIONS = ["AC", "+/-", "%"] as const;
-
 const DIGITS = {
   zero: "0",
   one: "1",
