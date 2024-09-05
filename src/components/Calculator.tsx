@@ -114,24 +114,30 @@ function Display() {
   if (!output) return null;
   return (
     <div
-      className={cn("pr-8 text-right text-7xl", {
+      className={cn("relative pr-8 text-right text-7xl", {
         "py-1.5 text-6xl": output.length > 6,
       })}
     >
-      <div className="text-xs">
-        <pre>
-          <code>{JSON.stringify(inputs)}: </code>
-          <label htmlFor="">Inputs</label>
-        </pre>
-        <pre>
-          <code>{JSON.stringify(infixToPostfix(inputs))}: </code>
-          <label htmlFor="">Conversion</label>
-        </pre>
-        <pre>
-          {/* biome-ignore lint/style/noNonNullAssertion: <explanation> */}
-          <code>{JSON.stringify(evaluate(infixToPostfix(inputs)!))}: </code>
-          <label htmlFor="">Total</label>
-        </pre>
+      <div className="absolute inset-x-0 -top-[120%] space-y-2 text-left text-xs">
+        <div className="flex justify-between">
+          <label htmlFor="">Inputs:</label>
+          <pre>
+            <code>{JSON.stringify(inputs)}</code>
+          </pre>
+        </div>
+        <div className="flex justify-between">
+          <label htmlFor="">Conversion:</label>
+          <pre>
+            <code>{JSON.stringify(infixToPostfix(inputs))}</code>
+          </pre>
+        </div>
+        <div className="flex justify-between">
+          <label htmlFor="">Total:</label>
+          <pre>
+            {/* biome-ignore lint/style/noNonNullAssertion: <explanation> */}
+            <code>{JSON.stringify(evaluate(infixToPostfix(inputs)!))}</code>
+          </pre>
+        </div>
       </div>
       <output>{formatOutput(output)}</output>
     </div>
